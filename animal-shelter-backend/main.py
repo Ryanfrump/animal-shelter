@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from model import Shelter, Animal
 
@@ -36,15 +37,19 @@ shelters: list[Shelter] = [
 
 app = FastAPI()
 
+origins = ["*"]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers={"*"}
+)
 
 # get end points
-@app.get("/shelter_name")
-async def get_shelter_name():
-  return [shelter["name"] for shelter in shelters]
-
-@app.get("/shelter")
-async def get_shelter_detail():
+@app.get("/shelters")
+async def get_shelter_detail() -> list[Shelter]:
   return shelters
 
 @app.get("/{shelter_name}/address")
@@ -69,10 +74,29 @@ async def get_dogs_by_shelter(shelter_name: str):
 
 
 # post end points
+@app.post("/shelter")
+async def post_shelters(shelter: Shelter):
+    shelters.append(shelter)
+    return shelter
 
 # put end points
+@app.put("/shelter")
+async def update_shelter(shelter_name: str, updated_shelter: Shelter):
+    for i, shelter in enumerate(shelters):
+        if shelter["name"] == shelter_name:
+            shelters[i] = updated_shelter
+            return updated_shelter
+    shelters.append(updated_shelter)
+
 
 # delete end points
+@app.delete("/shelter/{shelter_name}")
+async def delete_shelter(shelter_name: str):
+    for i, shelter in enumerate(shelters):
+        if shelter["name"] == shelter_name:
+            deleted_shelter = shelters.pop(i)
+            return deleted_shelter
+    raise HTTPException(status_code=404, detail="Shelter not found")
 
 
 

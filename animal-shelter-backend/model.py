@@ -3,7 +3,7 @@ from pydantic import BaseModel
 class Shelter(BaseModel):
   name: str
   address: str
-  animals: list["Animal"]
+  animals: "Animal"
 
 
 class Animal(BaseModel):
